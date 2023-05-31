@@ -7,6 +7,12 @@ export default defineConfig({
     port: 3000,
   },
   build: {
-    target: 'esnext',
+    minify: false,
+    target: "esnext",
+    lib: {
+      entry: "src/Comp.tsx",
+      fileName: "index",
+      formats: ["es"],
+    },
   },
 });
