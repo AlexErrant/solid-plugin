@@ -1,0 +1,3 @@
+{
+  "startCommand": "cd my-solid-project && pnpm i && pnpm dev"
+}
