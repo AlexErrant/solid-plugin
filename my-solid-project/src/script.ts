@@ -1,6 +1,9 @@
 // this is the result of `pnpm build` in `../my-solid-plugin`
 
 export const script = `const sharedConfig = {};
+function setHydrateContext(context) {
+  sharedConfig.context = context;
+}
 let runEffects = runQueue;
 const STALE = 1;
 const PENDING = 2;
@@ -19,12 +22,40 @@ function createRenderEffect(fn, value, options) {
   const c = createComputation(fn, value, false, STALE);
   updateComputation(c);
 }
+function createEffect(fn, value, options) {
+  runEffects = runUserEffects;
+  const c = createComputation(fn, value, false, STALE),
+    s = SuspenseContext && lookup(Owner, SuspenseContext.id);
+  if (s) c.suspense = s;
+  c.user = true;
+  Effects ? Effects.push(c) : updateComputation(c);
+}
 function untrack(fn) {
   try {
     return fn();
   } finally {
   }
 }
+function on(deps, fn, options) {
+  const isArray = Array.isArray(deps);
+  let prevInput;
+  let defer = options && options.defer;
+  return prevValue => {
+    let input;
+    if (isArray) {
+      input = Array(deps.length);
+      for (let i = 0; i < deps.length; i++) input[i] = deps[i]();
+    } else input = deps();
+    if (defer) {
+      defer = false;
+      return undefined;
+    }
+    const result = untrack(() => fn(input, prevInput, prevValue));
+    prevInput = input;
+    return result;
+  };
+}
+let SuspenseContext;
 function writeSignal(node, value, isComp) {
   let current = node.value;
   if (!node.comparator || !node.comparator(current, value)) {
@@ -152,6 +183,16 @@ function completeUpdates(wait) {
 function runQueue(queue) {
   for (let i = 0; i < queue.length; i++) runTop(queue[i]);
 }
+function runUserEffects(queue) {
+  let i,
+    userLength = 0;
+  for (i = 0; i < queue.length; i++) {
+    const e = queue[i];
+    if (!e.user) runTop(e);else queue[userLength++] = e;
+  }
+  if (sharedConfig.context) setHydrateContext();
+  for (i = 0; i < userLength; i++) runTop(queue[i]);
+}
 function lookUpstream(node, ignore) {
   const runningTransition = Transition ;
   node.state = 0;
@@ -211,6 +252,9 @@ function castError(err) {
 function handleError(err) {
   err = castError(err);
   throw err;
+}
+function lookup(owner, key) {
+  return owner ? owner.context && owner.context[key] !== undefined ? owner.context[key] : lookup(owner.owner, key) : undefined;
 }
 
 function reconcileArrays(parentNode, a, b) {
@@ -396,6 +440,9 @@ function cleanChildren(parent, current, marker, replacement) {
 
 const _tmpl$ = /*#__PURE__*/template(\`<h1>Hello world!!! <!> x</h1>\`);
 const Comp = props => {
+  createEffect(on(props.i, v => {
+    console.log("inside \`on\`", v);
+  }));
   return (() => {
     const _el$ = _tmpl$.cloneNode(true),
       _el$2 = _el$.firstChild,
