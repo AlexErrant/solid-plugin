@@ -1,6 +1,9 @@
 // this is the result of `pnpm build` in `../my-solid-plugin`
 
 export const script = `const sharedConfig = {};
+function setHydrateContext(context) {
+  sharedConfig.context = context;
+}
 let runEffects = runQueue;
 const STALE = 1;
 const PENDING = 2;
@@ -19,10 +22,27 @@ function createRenderEffect(fn, value, options) {
   const c = createComputation(fn, value, false, STALE);
   updateComputation(c);
 }
+function createEffect(fn, value, options) {
+  runEffects = runUserEffects;
+  const c = createComputation(fn, value, false, STALE);
+  c.user = true;
+  Effects ? Effects.push(c) : updateComputation(c);
+}
 function untrack(fn) {
   try {
     return fn();
   } finally {
+  }
+}
+function runWithOwner(o, fn) {
+  const prev = Owner;
+  Owner = o;
+  try {
+    return runUpdates(fn, true);
+  } catch (err) {
+    handleError(err);
+  } finally {
+    Owner = prev;
   }
 }
 function writeSignal(node, value, isComp) {
@@ -151,6 +171,16 @@ function completeUpdates(wait) {
 }
 function runQueue(queue) {
   for (let i = 0; i < queue.length; i++) runTop(queue[i]);
+}
+function runUserEffects(queue) {
+  let i,
+    userLength = 0;
+  for (i = 0; i < queue.length; i++) {
+    const e = queue[i];
+    if (!e.user) runTop(e);else queue[userLength++] = e;
+  }
+  if (sharedConfig.context) setHydrateContext();
+  for (i = 0; i < userLength; i++) runTop(queue[i]);
 }
 function lookUpstream(node, ignore) {
   const runningTransition = Transition ;
@@ -396,6 +426,11 @@ function cleanChildren(parent, current, marker, replacement) {
 
 const _tmpl$ = /*#__PURE__*/template(\`<h1>Hello world!!! <!> x</h1>\`);
 const Comp = props => {
+  runWithOwner(props.owner, () => {
+    createEffect(() => {
+      console.log("inside run with owner", props.i);
+    });
+  });
   return (() => {
     const _el$ = _tmpl$.cloneNode(true),
       _el$2 = _el$.firstChild,

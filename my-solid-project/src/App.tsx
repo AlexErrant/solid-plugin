@@ -3,6 +3,8 @@ import {
   type Component,
   createResource,
   VoidComponent,
+  getOwner,
+  Owner,
 } from "solid-js"
 import styles from "./App.module.css"
 import { Dynamic } from "solid-js/web"
@@ -21,14 +23,18 @@ const App: Component = () => {
   const [count, setCount] = createSignal(0)
   const [plugin] = createResource(async () => {
     let encodedPlugin = await toModule<{
-      default: VoidComponent<{ i: number }>
+      default: VoidComponent<{ i: number; owner: Owner }>
     }>(script)
     return encodedPlugin.default
   })
+  const owner = getOwner()
+  if (owner == null) {
+    throw new Error("owner is null")
+  }
   return (
     <div class={styles.App}>
       <button onClick={() => setCount((x) => x + 1)}>Inc {count()}</button>
-      <Dynamic component={plugin()} i={count()} />
+      <Dynamic component={plugin()} i={count()} owner={owner} />
     </div>
   )
 }
