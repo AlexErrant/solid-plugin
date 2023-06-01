@@ -17,18 +17,22 @@ async function toModule<T>(script: string) {
   return module as T
 }
 
+const ChildComp: VoidComponent<{ i: number }> = (props) => {
+  return <div>Child Comp, *2 prop is {props.i * 2}</div>
+}
+
 const App: Component = () => {
   const [count, setCount] = createSignal(0)
   const [plugin] = createResource(async () => {
     let encodedPlugin = await toModule<{
-      default: VoidComponent<{ i: number }>
+      default: VoidComponent<{ i: number; child: VoidComponent<{ i: number }> }>
     }>(script)
     return encodedPlugin.default
   })
   return (
     <div class={styles.App}>
       <button onClick={() => setCount((x) => x + 1)}>Inc {count()}</button>
-      <Dynamic component={plugin()} i={count()} />
+      <Dynamic component={plugin()} i={count()} child={ChildComp} />
     </div>
   )
 }

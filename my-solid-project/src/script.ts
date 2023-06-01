@@ -1,6 +1,6 @@
 // this is the result of `pnpm build` in `../my-solid-plugin`
 
-export const script = `import { createRenderEffect, sharedConfig } from 'solid-js';
+export const script = `import { createRenderEffect, sharedConfig, createComponent } from 'solid-js';
 
 function reconcileArrays(parentNode, a, b) {
   let bLength = b.length,
@@ -183,16 +183,21 @@ function cleanChildren(parent, current, marker, replacement) {
   return [node];
 }
 
-const _tmpl$ = /*#__PURE__*/template(\`<h1>Hello world!!! <!> x</h1>\`);
+const _tmpl$ = /*#__PURE__*/template(\`<h1>Hello world!!! <!> x</h1>\`),
+  _tmpl$2 = /*#__PURE__*/template(\`<div>Comp intercepts and passes an incremented i to child prop</div>\`);
 const Comp = props => {
-  return (() => {
+  return [(() => {
     const _el$ = _tmpl$.cloneNode(true),
       _el$2 = _el$.firstChild,
       _el$4 = _el$2.nextSibling;
       _el$4.nextSibling;
     insert(_el$, () => props.i, _el$4);
     return _el$;
-  })();
+  })(), _tmpl$2.cloneNode(true), createComponent(props.child, {
+    get i() {
+      return props.i + 1;
+    }
+  })];
 };
 
 export { Comp as default };
