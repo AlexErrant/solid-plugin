@@ -1,3 +1,3 @@
 {
-  "startCommand": "cd my-solid-project && pnpm i && pnpm dev"
+  "startCommand": "cd my-solid-project && pnpm i && pnpm build && pnpm serve"
 }

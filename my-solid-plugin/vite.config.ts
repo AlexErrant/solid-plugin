@@ -8,6 +8,11 @@ export default defineConfig({
   },
   build: {
     minify: false,
+    rollupOptions: {
+      external: [
+        "solid-js"
+      ]
+    },
     target: "esnext",
     lib: {
       entry: "src/Comp.tsx",

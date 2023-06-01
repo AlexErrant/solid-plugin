@@ -6,7 +6,8 @@
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "postinstall": "cp ./node_modules/solid-js/dist/solid.js ./src/assets/solid.js"
   },
   "license": "MIT",
   "devDependencies": {
