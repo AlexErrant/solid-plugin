@@ -36,6 +36,9 @@ function element(name) {
 function text(data) {
     return document.createTextNode(data);
 }
+function space() {
+    return text(' ');
+}
 function listen(node, event, handler, options) {
     node.addEventListener(event, handler, options);
     return () => node.removeEventListener(event, handler, options);
@@ -53,6 +56,23 @@ function set_data(text, data) {
 let current_component;
 function set_current_component(component) {
     current_component = component;
+}
+function get_current_component() {
+    if (!current_component)
+        throw new Error('Function called outside component initialization');
+    return current_component;
+}
+/**
+ * The \`onMount\` function schedules a callback to run as soon as the component has been mounted to the DOM.
+ * It must be called during the component's initialisation (but doesn't need to live *inside* the component;
+ * it can be called from an external module).
+ *
+ * \`onMount\` does not run inside a [server-side component](/docs#run-time-server-side-component-api).
+ *
+ * https://svelte.dev/docs#run-time-svelte-onmount
+ */
+function onMount(fn) {
+    get_current_component().$$.on_mount.push(fn);
 }
 
 const dirty_components = [];
@@ -306,6 +326,14 @@ function create_fragment(ctx) {
 	let button;
 	let t0;
 	let t1;
+	let t2;
+	let div0;
+	let t3;
+	let t4;
+	let t5;
+	let div1;
+	let t7;
+	let div2;
 	let mounted;
 	let dispose;
 
@@ -313,25 +341,51 @@ function create_fragment(ctx) {
 		c() {
 			button = element("button");
 			t0 = text("count is ");
-			t1 = text(/*count*/ ctx[0]);
+			t1 = text(/*count*/ ctx[1]);
+			t2 = space();
+			div0 = element("div");
+			t3 = text("solidCount is ");
+			t4 = text(/*solidCount*/ ctx[0]);
+			t5 = space();
+			div1 = element("div");
+			div1.textContent = "Actually incremented is";
+			t7 = space();
+			div2 = element("div");
 		},
 		m(target, anchor) {
 			insert(target, button, anchor);
 			append(button, t0);
 			append(button, t1);
+			insert(target, t2, anchor);
+			insert(target, div0, anchor);
+			append(div0, t3);
+			append(div0, t4);
+			insert(target, t5, anchor);
+			insert(target, div1, anchor);
+			insert(target, t7, anchor);
+			insert(target, div2, anchor);
+			/*div2_binding*/ ctx[5](div2);
 
 			if (!mounted) {
-				dispose = listen(button, "click", /*increment*/ ctx[1]);
+				dispose = listen(button, "click", /*increment*/ ctx[3]);
 				mounted = true;
 			}
 		},
 		p(ctx, [dirty]) {
-			if (dirty & /*count*/ 1) set_data(t1, /*count*/ ctx[0]);
+			if (dirty & /*count*/ 2) set_data(t1, /*count*/ ctx[1]);
+			if (dirty & /*solidCount*/ 1) set_data(t4, /*solidCount*/ ctx[0]);
 		},
 		i: noop,
 		o: noop,
 		d(detaching) {
 			if (detaching) detach(button);
+			if (detaching) detach(t2);
+			if (detaching) detach(div0);
+			if (detaching) detach(t5);
+			if (detaching) detach(div1);
+			if (detaching) detach(t7);
+			if (detaching) detach(div2);
+			/*div2_binding*/ ctx[5](null);
 			mounted = false;
 			dispose();
 		}
@@ -339,26 +393,50 @@ function create_fragment(ctx) {
 }
 
 function instance($$self, $$props, $$invalidate) {
+	let { solidCount } = $$props;
+	let { child } = $$props;
 	let count = 0;
 
 	const increment = () => {
-		$$invalidate(0, count += 1);
+		$$invalidate(1, count += 1);
 	};
 
-	return [count, increment];
+	let container;
+
+	onMount(() => {
+		container.appendChild(child({ i: solidCount + 1 }));
+	});
+
+	function div2_binding($$value) {
+		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
+			container = $$value;
+			$$invalidate(2, container);
+		});
+	}
+
+	$$self.$$set = $$props => {
+		if ('solidCount' in $$props) $$invalidate(0, solidCount = $$props.solidCount);
+		if ('child' in $$props) $$invalidate(4, child = $$props.child);
+	};
+
+	return [solidCount, count, container, increment, child, div2_binding];
 }
 
 class Counter extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance, create_fragment, safe_not_equal, {});
+		init(this, options, instance, create_fragment, safe_not_equal, { solidCount: 0, child: 4 });
 	}
 }
 
 const Comp = (props) => {
   let div = document.createElement("div");
   new Counter({
-    target: div
+    target: div,
+    props: {
+      solidCount: props.i,
+      child: props.child
+    }
   });
   return div;
 };

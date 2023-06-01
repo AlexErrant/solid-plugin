@@ -8,6 +8,10 @@ const Comp: VoidComponent<{
   let div = document.createElement("div")
   const counter = new Counter({
     target: div,
+    props: {
+      solidCount: props.i,
+      child: props.child,
+    },
   })
   return div
 }
