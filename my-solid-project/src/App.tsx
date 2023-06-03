@@ -6,7 +6,7 @@ import {
 } from "solid-js"
 import styles from "./App.module.css"
 import { Dynamic } from "solid-js/web"
-import { script } from "./script"
+import { script } from "./tsScript"
 
 // https://stackoverflow.com/a/57255653
 async function toModule<T>(script: string) {
