@@ -1,4 +1,6 @@
 node_modules
 dist
+
 # actually the below needs to be commited to source control because stackblitz doesn't do the `postinstall` properly
 # public/assets/solid.js
+# public/assets/web.js

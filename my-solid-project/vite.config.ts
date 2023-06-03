@@ -9,7 +9,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: [
-        "solid-js"
+        "solid-js",
+        "solid-js/web"
       ]
     },
     minify:false,
