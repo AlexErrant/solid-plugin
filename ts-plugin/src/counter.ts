@@ -86,14 +86,22 @@ const Comp: VoidComponent<{
   container.appendChild(document.createElement("hr"))
 
   container.append("createComponent with a plain VoidComponent ")
-  const createPlainComponent = createComponent(props.child, { i: props.i })
+  const createPlainComponent = createComponent(props.child, {
+    get i() {
+      return props.i
+    },
+  })
   container.appendChild(createPlainComponent as Node)
   container.appendChild(document.createElement("hr"))
 
   container.append("createComponent with Dynamic")
   const createDynamicComp = createComponent(Dynamic, {
-    component: props.child,
-    i: props.i,
+    get component() {
+      return props.child
+    },
+    get i() {
+      return props.i
+    },
   })
   // @ts-expect-error Dynamic is callable, contrary to the typescript definition. Calling it is probably breaking reactivity, but I don't know how else to attach it to the DOM.
   container.appendChild(createDynamicComp() as Node)

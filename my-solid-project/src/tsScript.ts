@@ -74,13 +74,21 @@ const Comp = (props) => {
   container.appendChild(componentDiv);
   container.appendChild(document.createElement("hr"));
   container.append("createComponent with a plain VoidComponent ");
-  const createPlainComponent = createComponent(props.child, { i: props.i });
+  const createPlainComponent = createComponent(props.child, {
+    get i() {
+      return props.i;
+    }
+  });
   container.appendChild(createPlainComponent);
   container.appendChild(document.createElement("hr"));
   container.append("createComponent with Dynamic");
   const createDynamicComp = createComponent(Dynamic, {
-    component: props.child,
-    i: props.i
+    get component() {
+      return props.child;
+    },
+    get i() {
+      return props.i;
+    }
   });
   container.appendChild(createDynamicComp());
   container.appendChild(document.createElement("hr"));
