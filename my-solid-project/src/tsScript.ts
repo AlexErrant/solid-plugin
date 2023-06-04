@@ -1,6 +1,6 @@
 // this is the result of `pnpm build` in `../ts-plugin`
 
-export const script = `import { createEffect } from 'solid-js';
+export const script = `import { createEffect, createComponent } from 'solid-js';
 import { render, Dynamic, Portal } from 'solid-js/web';
 
 function setupCounter(element) {
@@ -53,13 +53,36 @@ const Comp = (props) => {
   container.appendChild(portalDiv);
   container.appendChild(document.createElement("hr"));
   container.append(
+    "using 'Portal' inside a 'createEffect' replaces the entire DOM sub-tree, losing all fine-grained updates"
+  );
+  const portalEffectDiv = document.createElement("div");
+  createEffect(() => {
+    Portal({
+      mount: portalEffectDiv,
+      children: props.child({ i: props.i })
+    });
+  });
+  container.appendChild(portalEffectDiv);
+  container.appendChild(document.createElement("hr"));
+  container.append(
     "Invoking the component and replacing the entire DOM sub-tree with createEffect, losing all fine-grained updates"
   );
-  let componentDiv = document.createElement("div");
+  const componentDiv = document.createElement("div");
   createEffect(() => {
     componentDiv.replaceChildren(props.child({ i: props.i }));
   });
   container.appendChild(componentDiv);
+  container.appendChild(document.createElement("hr"));
+  container.append("createComponent with a plain VoidComponent ");
+  const createPlainComponent = createComponent(props.child, { i: props.i });
+  container.appendChild(createPlainComponent);
+  container.appendChild(document.createElement("hr"));
+  container.append("createComponent with Dynamic");
+  const createDynamicComp = createComponent(Dynamic, {
+    component: props.child,
+    i: props.i
+  });
+  container.appendChild(createDynamicComp());
   container.appendChild(document.createElement("hr"));
   return container;
 };

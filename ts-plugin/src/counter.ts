@@ -8,7 +8,7 @@ export function setupCounter(element: HTMLButtonElement) {
   setCounter(0)
 }
 
-import { VoidComponent, createEffect } from "solid-js"
+import { VoidComponent, createComponent, createEffect } from "solid-js"
 import { Dynamic, Portal, render } from "solid-js/web"
 
 const Comp: VoidComponent<{
@@ -63,13 +63,40 @@ const Comp: VoidComponent<{
   container.appendChild(document.createElement("hr"))
 
   container.append(
+    "using 'Portal' inside a 'createEffect' replaces the entire DOM sub-tree, losing all fine-grained updates"
+  )
+  const portalEffectDiv = document.createElement("div")
+  createEffect(() => {
+    Portal({
+      mount: portalEffectDiv,
+      children: props.child({ i: props.i }),
+    })
+  })
+  container.appendChild(portalEffectDiv)
+  container.appendChild(document.createElement("hr"))
+
+  container.append(
     "Invoking the component and replacing the entire DOM sub-tree with createEffect, losing all fine-grained updates"
   )
-  let componentDiv = document.createElement("div")
+  const componentDiv = document.createElement("div")
   createEffect(() => {
     componentDiv.replaceChildren(props.child({ i: props.i }) as Node)
   })
   container.appendChild(componentDiv)
+  container.appendChild(document.createElement("hr"))
+
+  container.append("createComponent with a plain VoidComponent ")
+  const createPlainComponent = createComponent(props.child, { i: props.i })
+  container.appendChild(createPlainComponent as Node)
+  container.appendChild(document.createElement("hr"))
+
+  container.append("createComponent with Dynamic")
+  const createDynamicComp = createComponent(Dynamic, {
+    component: props.child,
+    i: props.i,
+  })
+  // @ts-expect-error Dynamic is callable, contrary to the typescript definition. Calling it is probably breaking reactivity, but I don't know how else to attach it to the DOM.
+  container.appendChild(createDynamicComp() as Node)
   container.appendChild(document.createElement("hr"))
 
   return container
