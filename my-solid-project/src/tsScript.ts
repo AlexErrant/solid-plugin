@@ -37,18 +37,36 @@ const Comp = (props) => {
   container.appendChild(document.createElement("hr"));
   container.append("using 'render':");
   const renderDiv = document.createElement("div");
-  render(() => props.child({ i: props.i }), renderDiv);
+  render(
+    () => props.child({
+      get i() {
+        return props.i;
+      }
+    }),
+    renderDiv
+  );
   container.appendChild(renderDiv);
   container.appendChild(document.createElement("hr"));
   container.append("using 'Dynamic':");
-  const dynamicNode = Dynamic({ component: props.child, i: props.i })();
+  const dynamicNode = Dynamic({
+    get component() {
+      return props.child;
+    },
+    get i() {
+      return props.i;
+    }
+  })();
   container.appendChild(dynamicNode);
   container.appendChild(document.createElement("hr"));
   container.append("using 'Portal':");
   const portalDiv = document.createElement("div");
   Portal({
     mount: portalDiv,
-    children: props.child({ i: props.i })
+    children: props.child({
+      get i() {
+        return props.i;
+      }
+    })
   });
   container.appendChild(portalDiv);
   container.appendChild(document.createElement("hr"));
@@ -59,7 +77,11 @@ const Comp = (props) => {
   createEffect(() => {
     Portal({
       mount: portalEffectDiv,
-      children: props.child({ i: props.i })
+      children: props.child({
+        get i() {
+          return props.i;
+        }
+      })
     });
   });
   container.appendChild(portalEffectDiv);
@@ -69,7 +91,13 @@ const Comp = (props) => {
   );
   const componentDiv = document.createElement("div");
   createEffect(() => {
-    componentDiv.replaceChildren(props.child({ i: props.i }));
+    componentDiv.replaceChildren(
+      props.child({
+        get i() {
+          return props.i;
+        }
+      })
+    );
   });
   container.appendChild(componentDiv);
   container.appendChild(document.createElement("hr"));

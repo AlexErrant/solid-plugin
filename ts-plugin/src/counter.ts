@@ -43,13 +43,28 @@ const Comp: VoidComponent<{
 
   container.append("using 'render':")
   const renderDiv = document.createElement("div")
-  render(() => props.child({ i: props.i }), renderDiv)
+  render(
+    () =>
+      props.child({
+        get i() {
+          return props.i
+        },
+      }),
+    renderDiv
+  )
   container.appendChild(renderDiv)
   container.appendChild(document.createElement("hr"))
 
   container.append("using 'Dynamic':")
   // @ts-expect-error Dynamic is callable, contrary to the typescript definition. Calling it is probably breaking reactivity, but I don't know how else to attach it to the DOM.
-  const dynamicNode = Dynamic({ component: props.child, i: props.i })() as Node
+  const dynamicNode = Dynamic({
+    get component() {
+      return props.child
+    },
+    get i() {
+      return props.i
+    },
+  })() as Node
   container.appendChild(dynamicNode)
   container.appendChild(document.createElement("hr"))
 
@@ -57,7 +72,11 @@ const Comp: VoidComponent<{
   const portalDiv = document.createElement("div")
   Portal({
     mount: portalDiv,
-    children: props.child({ i: props.i }),
+    children: props.child({
+      get i() {
+        return props.i
+      },
+    }),
   })
   container.appendChild(portalDiv)
   container.appendChild(document.createElement("hr"))
@@ -69,7 +88,11 @@ const Comp: VoidComponent<{
   createEffect(() => {
     Portal({
       mount: portalEffectDiv,
-      children: props.child({ i: props.i }),
+      children: props.child({
+        get i() {
+          return props.i
+        },
+      }),
     })
   })
   container.appendChild(portalEffectDiv)
@@ -80,7 +103,13 @@ const Comp: VoidComponent<{
   )
   const componentDiv = document.createElement("div")
   createEffect(() => {
-    componentDiv.replaceChildren(props.child({ i: props.i }) as Node)
+    componentDiv.replaceChildren(
+      props.child({
+        get i() {
+          return props.i
+        },
+      }) as Node
+    )
   })
   container.appendChild(componentDiv)
   container.appendChild(document.createElement("hr"))
