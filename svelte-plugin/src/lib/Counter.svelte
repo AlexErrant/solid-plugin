@@ -1,17 +1,29 @@
 <script lang="ts">
-  import type { VoidComponent } from "solid-js"
+  import { type Accessor, type VoidComponent } from "solid-js"
+  import { Dynamic } from "solid-js/web"
   import { onMount } from "svelte"
 
-  export let solidCount: number
-  export let child: VoidComponent<{ i: number }>
+  export let solidI: number
+  export let solidProps: {
+    i: number
+    child: VoidComponent<{ i: number }>
+  }
 
   let count: number = 0
   const increment = () => {
     count += 1
   }
-  let container: HTMLDivElement
+  let placeholder: HTMLDivElement
   onMount(() => {
-    container.appendChild(child({ i: solidCount + 1 }) as Node)
+    let dynamic = Dynamic({
+      get component() {
+        return solidProps.child
+      },
+      get i() {
+        return solidProps.i + 2
+      },
+    }) as unknown as Accessor<Node> // https://github.com/solidjs/solid/issues/1763
+    placeholder.replaceWith(dynamic())
   })
 </script>
 
@@ -20,10 +32,8 @@
 </button>
 
 <div>
-  solidCount is {solidCount}
+  solidI is {solidI}
 </div>
 
-<div>
-  Actually incremented is
-</div>
-<div bind:this={container} />
+<div>Plugin actually gives the child component `count+2`</div>
+<div bind:this={placeholder} />

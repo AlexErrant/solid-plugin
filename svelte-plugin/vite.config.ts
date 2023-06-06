@@ -9,6 +9,11 @@ export default defineConfig({
     }),
   ],
   build: {
+    rollupOptions: {
+      external: [
+        "solid-js"
+      ]
+    },
     minify: false,
     target: "esnext",
     lib: {
